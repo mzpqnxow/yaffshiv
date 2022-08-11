@@ -432,6 +432,14 @@ class YAFFSEntry(YAFFS):
         self.inband_shadowed_obj_id = self.read_next(4)
         self.inband_is_shrink = self.read_next(4)
         self.file_size_high = self.read_next(4)
+
+        if self.config.endianess == YAFFS.LITTLE_ENDIAN:
+            # Swap 'em around; not sure if this is a bug or a peculiarity of the filesystem
+            # I'm working with, but otherwise you get:
+            # File system parsing failed: File size for file 'b'<redacted>'' exceeds the end of the file system [0xXXXXXXXXXXXXXXXX]!
+            # Swapping these fixes the issue and allows extraction to proceed successfully
+            self.file_size_high, self.file_size_low = self.file_size_low, self.file_size_high
+
         self.reserved = self.read_next(1)
         self.shadows_obj = self.read_next(4)
         self.is_shrink = self.read_next(4)
